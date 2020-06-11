@@ -7,15 +7,16 @@ const _ = require("lodash");
 
 //mongoose 
 const mongoose = require('mongoose');
+const { find } = require("lodash");
 
-mongoose.connect('mongodb://localhost:27017/blogdb',{ useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb://localhost:27017/blogdb', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const postSchema = new mongoose.Schema({
-title: String,
-content: String
+  title: String,
+  content: String
 });
 
-const post = mongoose.model('post',postSchema);
+const post = mongoose.model('post', postSchema);
 
 
 
@@ -25,84 +26,74 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 
 const app = express();
 
-let postArray=[];
-
 app.set('view engine', 'ejs');
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-app.get('/',function(req,res){
-  const find = post.find({},function(err,found){
-if(!err)
-{
-  res.render("home",{content:homeStartingContent, post:found});
-}
-else
-{
-  console.log(error);
-}
+app.get('/', function (req, res) {
+  const find = post.find({}, function (err, found) {
+    if (!err) {
+      res.render("home", { content: homeStartingContent, post: found });
+    }
+    else {
+      console.log(error);
+    }
   });
-
-  // res.render("home",{content:homeStartingContent, post:postArray});
 });
 
-app.get('/about',function(req,res){
-  res.render("about",{content:aboutContent});
+app.get('/about', function (req, res) {
+  res.render("about", { content: aboutContent });
 });
 
-app.get('/contact',function(req,res){
-  res.render("contact",{content:contactContent});
+app.get('/contact', function (req, res) {
+  res.render("contact", { content: contactContent });
 });
 
 
-app.get('/compose',function(req,res){
+app.get('/compose', function (req, res) {
   res.render("compose");
- 
+
 })
 
-app.post('/compose',function(req,res){
-  // const post= {
-  //   title: req.body.title,
-  //   postBody: req.body.post
-  // };
-  // postArray.push(post);
-
+app.post('/compose', function (req, res) {
   const posted = new post({
-   title: req.body.title,
-   content: req.body.post
+    title: req.body.title,
+    content: req.body.post
   });
- 
-posted.save();
+
+  posted.save();
   res.redirect('/');
 });
 
-app.get('/posts/:topic',function(req,res){
-  postArray.forEach(function(element){
+app.get('/posts/:topic', function (req, res) {
+  post.find({}, function (err, found) {
+    found.forEach(function (element) {
 
-  const urlTopic = req.params.topic;
-  const titleTopic = element.title;
-  const titlebody = element.postBody;
+      const urlTopic = req.params.topic;
+      const titleTopic = element.title;
+      const titlebody = element.content;
 
-  const urlTopicLowered = _.lowerCase(urlTopic);
-  const titleTopicLowered = _.lowerCase(titleTopic);
+      const urlTopicLowered = _.lowerCase(urlTopic);
+      const titleTopicLowered = _.lowerCase(titleTopic);
 
-  if(urlTopicLowered==titleTopicLowered)
-  {
-    res.render("post.ejs",{heading:titleTopic, titleB: titlebody});
-  }
-  else
-  {
-    console.log("not found");
-  }
+      if (urlTopicLowered == titleTopicLowered) {
+        res.render("post.ejs", { heading: titleTopic, titleB: titlebody });
+      }
+      else {
+        console.log("not found");
+      }
+    });
+
   });
-  
-  
+
+
+
 });
 
 
 
 
-app.listen(5000, function() {
+app.listen(5000, function () {
   console.log("Server started on port 5000");
 });
